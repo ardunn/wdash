@@ -37,6 +37,7 @@ FORECAST_WINDOW_UNITS = "d"
 N_WIND_STAR_WINDOW = 5
 WIND_STAR_WINDOW_UNITS = "h"
 FORECAST_RGB = "rgb(160,160,160)"
+N_HISTORICAL_DAYS = 7
 
 SUMMARY_FORECAST_DAYS = 7
 
@@ -160,9 +161,9 @@ def create_df():
     dt_cols_str = [d + "_str" for d in dt_cols]
     df = pd.concat((hdf, fdf))
     df[dt_cols_str] = df[dt_cols].apply(datetime2string)
-
     df["wind.cardinal"] = df["wind.deg"].apply(convert_meteorological_deg2cardinal_dir)
-
+    df["sunset.timeofday"] = df["sunset_time"].apply(lambda x: x.time() if isinstance(x, datetime.datetime) else x )
+    df["sunrise.timeofday"] = df["sunrise_time"].apply(lambda x: x.time() if isinstance(x, datetime.datetime) else x)
 
     # manually fix a few columns
     for c in ["precipitation_probability", "snow.3h", "rain.3h"]:
@@ -194,7 +195,8 @@ def get_error_graphs(df_graph, x_column, main_line_column, lower_column, upper_c
         fillcolor=rgba_str,
         line=dict(color=rgba_nothing),
         marker=dict(color=rgba_nothing),
-        showlegend=False
+        showlegend=False,
+        hoverinfo="skip"
     )
     return [line, area]
 
@@ -248,12 +250,17 @@ def create_time_figure(
         column_error_max=None,
         history_rgb="rgb(255,0,0)",
         forecast_rgb="rgb(0,0,0)",
-        as_type="figure"
+        as_type="figure",
+        line_only_graph_type="lines",
+        custom_main_trace_label=None,
+        limit_date_range=True
 ):
     df_forecast = df[df["origin"] == "forecast"]
     df_history = df[df["origin"] == "history"]
 
     graphs = []
+
+    main_trace_label = "Recorded data" if not custom_main_trace_label else custom_main_trace_label
 
     if show_history:
         if column_error_max and column_error_min:
@@ -265,7 +272,7 @@ def create_time_figure(
                 column_error_min,
                 column_error_max,
                 history_rgb,
-                "Recorded data"
+                main_trace_label
             )
         else:
             logging.info(f"Creatimg '{column_main}' graph with no error bars")
@@ -275,8 +282,8 @@ def create_time_figure(
                 column_main,
                 history_rgb,
                 3,
-                "lines",
-                "Recorded data"
+                line_only_graph_type,
+                main_trace_label
             )
         graphs += history_graphs
 
@@ -307,6 +314,15 @@ def create_time_figure(
             legend_title="Data Source",
             template="plotly_dark"
         )
+        if limit_date_range:
+            limited_td = datetime.timedelta(days=N_HISTORICAL_DAYS)
+            if datetime.datetime.now() - df_history["datetime"].min() > limited_td:
+                dt_min = datetime.datetime.now() - limited_td
+            else:
+                dt_min = df_history["datetime"].min()
+
+            dt_max = df_forecast["datetime"].max()
+            fig.update_xaxes(range=[dt_min, dt_max])
         return fig
     elif as_type == "graphs":
         return graphs
@@ -387,10 +403,6 @@ def wind_direction_graph(df_wind, history_rgb, forecast_rgb):
         legend_title="Data source"
     )
     return fig
-
-
-# def weather_heatmap
-
 
 
 def generate_page():
@@ -474,15 +486,70 @@ def generate_page():
         forecast_rgb=FORECAST_RGB
     )
 
+    fig_feels_like = create_time_figure(
+        df,
+        "temperature.feels_like",
+        "Temperature feels like (F)",
+        show_forecast=True,
+        show_history=True,
+        column_error_min="temperature.temp_min",
+        column_error_max="temperature.temp_max",
+        history_rgb="rgb(255,255,0)",
+        forecast_rgb=FORECAST_RGB
+    )
+
+    graphs_sunrise = create_time_figure(
+        df,
+        "sunrise.timeofday",
+        None,
+        show_history=True,
+        show_forecast=False,
+        history_rgb="rgb(255,255,51)",
+        as_type="graphs",
+        line_only_graph_type="markers",
+        custom_main_trace_label="Sunrise"
+    )
+
+    graphs_sunset = create_time_figure(
+        df,
+        "sunset.timeofday",
+        None,
+        show_history=True,
+        show_forecast=False,
+        history_rgb="rgb(255,128,0)",
+        as_type="graphs",
+        line_only_graph_type="markers",
+        custom_main_trace_label="Sunset"
+    )
+
+    fig_suntimes = go.Figure(graphs_sunset + graphs_sunrise)
+    fig_suntimes.update_layout(
+        template="plotly_dark",
+        title="Sunrise and Sunsets"
+    )
+
+    fig_rainaccu = create_time_figure(
+        df,
+        "rain.3h",
+        "Rain accumulation over past 3h (mm)",
+        show_history=True,
+        show_forecast=True,
+        history_rgb="rgb(7,130,255)",
+        forecast_rgb=FORECAST_RGB
+    )
+
     graphs = [
         dcc.Graph(id='graph_temperature',figure=fig_temp),
+        dcc.Graph(id="graph_feels_like", figure=fig_feels_like),
         dcc.Graph(id='graph_precipitation_probability', figure=fig_precipitation_prob),
+        dcc.Graph(id='graph_rain_accumulation', figure=fig_rainaccu),
         dcc.Graph(id='graph_windspeed', figure=fig_windspeed),
         dcc.Graph(id="graph_winddeg", figure=fig_winddeg),
         dcc.Graph(id="graph_pressure", figure=fig_pressure),
         dcc.Graph(id="graph_humidty", figure=fig_humidity),
         dcc.Graph(id="graph_visibility", figure=fig_visibility),
-        dcc.Graph(id="graph_cloud_coverage", figure=fig_cloud_cover)
+        dcc.Graph(id="graph_cloud_coverage", figure=fig_cloud_cover),
+        dcc.Graph(id="graph_suntimes", figure=fig_suntimes)
     ]
     divs = []
 
@@ -497,7 +564,7 @@ def generate_page():
 
 
     # top rows
-    common_style = {"width": "95%", "height": "500px", "margin": "auto", "border": "30px"}
+    common_style = {"width": "95%", "height": "700px", "margin": "auto", "border": "30px"}
     widget = html.Iframe(
         style=common_style,
         src="https://embed.windy.com/embed2.html?lat=39.339&lon=-120.173&detailLat=39.339&detailLon=-120.173&width=650&height=450&zoom=5&level=surface&overlay=wind&product=ecmwf&menu=&message=&marker=&calendar=now&pressure=&type=map&location=coordinates&detail=&metricWind=mph&metricTemp=%C2%B0F&radarRange=-1"
@@ -534,7 +601,6 @@ def generate_page():
     df_hm["dow"] = df_hm["datetime"].apply(lambda x: DOWS[x.weekday()])
     df_hm["hour"] = df_hm["datetime"].apply(lambda x: x.hour)
 
-
     square_index = list(reversed(df_hm["dow"].unique().tolist()))
     hours_index = [2, 5, 8, 11, 14, 17, 20, 23]
 
@@ -545,7 +611,7 @@ def generate_page():
         d = entry[1]["dow"]
         h = entry[1]["hour"]
         s = entry[1]["status"] # simple status
-        df_square_statuses.at[d, h] = s
+        df_square_statuses.at[d, h] = "" if s == "no status" else s
         df_square_ints.at[d, h] = OWM_WEATHER_SIMPLE_STATUS_TO_INT[s.lower()]
 
 
@@ -577,19 +643,47 @@ def generate_page():
     figh.update_layout(
         template="plotly_dark",
         title="Abbreviated forecasts",
-        yaxis_title="Weekday",
-        xaxis_title="Hour"
+        xaxis=dict(title="Hour", showgrid=False),
+        yaxis=dict(title="Weekday", showgrid=False)
+
     )
     g = dcc.Graph(id="graph_heatmap", figure=figh)
-    col1 = html.Div(g, className="six columns")
+
+
+    white_text = {"color": "white"}
+
+    right_now = html.Div([
+        html.H5(f'Current weather: {most_recent_weather["detailed_status"].capitalize() if most_recent_weather["detailed_status"] else "No current weather"}', style=white_text),
+        html.Table([
+            html.Tr([
+                html.Td("Temperature", style=white_text),
+                html.Td(f'{int(most_recent_weather["temperature.temp"])}F (feels like {int(most_recent_weather["temperature.feels_like"])}F)', style=white_text)
+            ]),
+            html.Tr([
+                html.Td("Precipitation prob./accum (3h)", style=white_text),
+                html.Td(f'{most_recent_weather["precipitation_probability"]}/{most_recent_weather["rain.3h"]}mm', style=white_text)
+            ]),
+            html.Tr([
+                html.Td("Wind speed/direction", style=white_text),
+                html.Td(f'{int(most_recent_weather["wind.speed"])} mph @ {most_recent_weather["wind.cardinal"]}', style=white_text)
+            ]),
+            html.Tr([
+                html.Td("Fetched at", style=white_text),
+                html.Td(f'{most_recent_weather["fetched_at_str"]}', style=white_text)
+            ])
+
+        ])
+
+    ], style={'padding-left': '40px', 'padding-right': '40px', "marginLeft": "auto", "marginRight": "auto"})
+    col1 = html.Div([right_now, g], className="six columns")
     col2 = html.Div(widget, className="six columns")
     toprow = html.Div([col1, col2], className="row")
     return html.Div([toprow] + divs)
 
 
 
-
-app = dash.Dash(__name__)
+app = dash.Dash(__name__, title="wdash", update_title="wdash")
+app.title = "wdash"
 
 app.layout = html.Div(
     children=[
