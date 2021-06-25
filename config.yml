@@ -1,0 +1,8 @@
+CITY_ID: 5403676
+TZ: "US/Pacific"
+DB_HOST: "localhost"
+DB_PORT: 27017
+DB_NAME: "wdash"
+INTERVAL: 300
+# Your api key goes here
+API_KEY: ""
