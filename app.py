@@ -9,6 +9,7 @@ import dash_core_components as dcc
 import dash_html_components as html
 import plotly.express as px
 import plotly.graph_objs as go
+from dash.dependencies import Input, Output
 import plotly.figure_factory as ff
 import pandas as pd
 import numpy as np
@@ -25,6 +26,7 @@ HOST = CONFIG["DB_HOST"]
 PORT = CONFIG["DB_PORT"]
 NAME = CONFIG["DB_NAME"]
 INTERVAL = CONFIG["INTERVAL"]
+SERVER_PORT = CONFIG["PORT"]
 
 mc = MongoClient(host=HOST, port=PORT)
 cw = mc[NAME].weather_current
@@ -59,6 +61,7 @@ OWM_WEATHER_SIMPLE_STATUS_TO_INT = {
     "tornado": 30
 }
 
+app = dash.Dash(__name__, title="wdash", update_title="wdash")
 
 
 def convert_meteorological_deg2cardinal_dir(deg_measurement):
@@ -404,8 +407,12 @@ def wind_direction_graph(df_wind, history_rgb, forecast_rgb):
     )
     return fig
 
-
-def generate_page():
+@app.callback(
+    Output(component_id='all_info', component_property="children"),
+    Input(component_id="interval", component_property="n_intervals")
+)
+def generate_page(n_intervals):
+    logging.info(f"Regenerating info div: times regenerated = {n_intervals}")
     df = create_df()
 
     fig_temp = create_time_figure(
@@ -634,11 +641,12 @@ def generate_page():
         y=df_square_ints.index.tolist(),
         x=df_square_ints.columns.tolist(),
         annotation_text=df_square_statuses.values,
-        colorscale="Viridis",
+        colorscale="Turbo",
         showscale=False,
         customdata=df_square_statuses.values,
         hovertemplate="forecast:%{customdata}",
-        name="Forecast"
+        name="Forecast",
+        font_colors=["white", "black"],
     )
     figh.update_layout(
         template="plotly_dark",
@@ -682,8 +690,8 @@ def generate_page():
 
 
 
-app = dash.Dash(__name__, title="wdash", update_title="wdash")
-app.title = "wdash"
+
+
 
 app.layout = html.Div(
     children=[
@@ -693,15 +701,16 @@ app.layout = html.Div(
             Updated with data from the OpenWeatherMaps API, pyOWM, and Windy.
         ''', style={"color": "white"}),
         html.Br(),
-        generate_page(),
+        html.Div(id="all_info"),
 
     ],
     style={"backgroundColor": "rgb(17,17,17)"}
 )
-
+app.title = "wdash"
 
 if __name__ == '__main__':
     pd.set_option('display.max_rows', 500)
     pd.set_option('display.max_columns', 500)
     pd.set_option('display.width', 1000)
-    app.run_server(debug=True)
+    # app.run_server(debug=True, port=SERVER_PORT)
+    app.run_server(debug=False, host="0.0.0.0", port=SERVER_PORT)

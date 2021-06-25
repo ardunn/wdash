@@ -4,5 +4,6 @@ DB_HOST: "localhost"
 DB_PORT: 27017
 DB_NAME: "wdash"
 INTERVAL: 1800
+PORT: 57042
 # Your api key goes here
 API_KEY: ""
