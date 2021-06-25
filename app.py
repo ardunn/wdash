@@ -9,6 +9,7 @@ import dash_core_components as dcc
 import dash_html_components as html
 import plotly.express as px
 import plotly.graph_objs as go
+import plotly.figure_factory as ff
 import pandas as pd
 import numpy as np
 import logging
@@ -36,6 +37,28 @@ FORECAST_WINDOW_UNITS = "d"
 N_WIND_STAR_WINDOW = 5
 WIND_STAR_WINDOW_UNITS = "h"
 FORECAST_RGB = "rgb(160,160,160)"
+
+SUMMARY_FORECAST_DAYS = 7
+
+# based on the "main" columns from https://openweathermap.org/weather-conditions
+OWM_WEATHER_SIMPLE_STATUS_TO_INT = {
+    "clear": 0,
+    "clouds": 1,
+    "drizzle": 2,
+    "rain": 3,
+    "snow": 10,
+    "mist": 4,
+    "fog": 5,
+    "sand": 8,
+    "smoke": 20,
+    "haze": 15,
+    "dust": 13,
+    "ash": 25,
+    "squall": 17,
+    "tornado": 30
+}
+
+
 
 def convert_meteorological_deg2cardinal_dir(deg_measurement):
     """
@@ -147,6 +170,8 @@ def create_df():
             df[c] = df[c].fillna(0)
         else:
             logging.info(f"Expected column '{c}' not found in dataframe!")
+
+    df = df.reset_index()
 
     return df
 
@@ -469,7 +494,98 @@ def generate_page():
 
     if len(graphs) % 2 != 0:
         divs.append(html.Div(graphs[-1], className="row"))
-    return html.Div(divs)
+
+
+    # top rows
+    common_style = {"width": "95%", "height": "500px", "margin": "auto", "border": "30px"}
+    widget = html.Iframe(
+        style=common_style,
+        src="https://embed.windy.com/embed2.html?lat=39.339&lon=-120.173&detailLat=39.339&detailLon=-120.173&width=650&height=450&zoom=5&level=surface&overlay=wind&product=ecmwf&menu=&message=&marker=&calendar=now&pressure=&type=map&location=coordinates&detail=&metricWind=mph&metricTemp=%C2%B0F&radarRange=-1"
+    )
+
+
+    df["timedeltas_datetime"] = df["datetime"] - datetime.datetime.now()
+    df["timedeltas_fetched"] = datetime.datetime.now() - df["fetched_at"]
+
+    # get most recent datum according to timedelta fetched time
+    most_recent_historical_idx = df[df["origin"] == "history"]["timedeltas_fetched"].idxmin()
+    most_recent_weather = df.loc[most_recent_historical_idx]
+
+    # get most recent forecast for next N days
+    most_recent_forecast_idx = df[df["origin"] == "forecast"]["timedeltas_fetched"].idxmin()
+    most_recent_forecast_fetched_at = df["fetched_at_str"].loc[most_recent_forecast_idx]
+
+    df_forecast_most_recent = df[
+        (df["origin"] == "forecast") & (df["fetched_at_str"] == most_recent_forecast_fetched_at)]
+
+
+    # df_hm = df_forecast_most_recent.append(most_recent_weather)
+    df_hm = df_forecast_most_recent
+    df_hm = df_hm.sort_values(by=["datetime"])
+    DOWS = {
+        0: "Monday",
+        1: "Tuesday",
+        2: "Wednesday",
+        3: "Thursday",
+        4: "Friday",
+        5: "Saturday",
+        6: "Sunday"
+    }
+    df_hm["dow"] = df_hm["datetime"].apply(lambda x: DOWS[x.weekday()])
+    df_hm["hour"] = df_hm["datetime"].apply(lambda x: x.hour)
+
+
+    square_index = list(reversed(df_hm["dow"].unique().tolist()))
+    hours_index = [2, 5, 8, 11, 14, 17, 20, 23]
+
+    df_square_statuses = pd.DataFrame("no status", columns=hours_index, index=square_index)
+    df_square_ints = pd.DataFrame(np.nan, columns=hours_index, index=square_index)
+
+    for entry in df_hm.iterrows():
+        d = entry[1]["dow"]
+        h = entry[1]["hour"]
+        s = entry[1]["status"] # simple status
+        df_square_statuses.at[d, h] = s
+        df_square_ints.at[d, h] = OWM_WEATHER_SIMPLE_STATUS_TO_INT[s.lower()]
+
+
+    # heatmap = go.Heatmap(
+    #     z=df_square_ints.values,
+    #     y=df_square_ints.index,
+    #     x=df_square_ints.columns,
+    #     hoverongaps=False,
+    #     customdata=df_square_statuses.values,
+    #     hovertemplate="forecast:%{customdata}",
+    #     colorbar=False
+    # )
+    #
+    # figh = go.Figure(data=heatmap)
+
+
+
+    figh = ff.create_annotated_heatmap(
+        df_square_ints.values,
+        y=df_square_ints.index.tolist(),
+        x=df_square_ints.columns.tolist(),
+        annotation_text=df_square_statuses.values,
+        colorscale="Viridis",
+        showscale=False,
+        customdata=df_square_statuses.values,
+        hovertemplate="forecast:%{customdata}",
+        name="Forecast"
+    )
+    figh.update_layout(
+        template="plotly_dark",
+        title="Abbreviated forecasts",
+        yaxis_title="Weekday",
+        xaxis_title="Hour"
+    )
+    g = dcc.Graph(id="graph_heatmap", figure=figh)
+    col1 = html.Div(g, className="six columns")
+    col2 = html.Div(widget, className="six columns")
+    toprow = html.Div([col1, col2], className="row")
+    return html.Div([toprow] + divs)
+
 
 
 
@@ -479,10 +595,10 @@ app.layout = html.Div(
     children=[
         dcc.Interval("interval", interval=INTERVAL * 1000),
         html.H1(children='Weather dashboard for Truckee, CA', style={"color": "white"}),
-
         html.Div(children='''
-            Updated with data from the OpenWeatherMaps API and pyOWM.
+            Updated with data from the OpenWeatherMaps API, pyOWM, and Windy.
         ''', style={"color": "white"}),
+        html.Br(),
         generate_page(),
 
     ],

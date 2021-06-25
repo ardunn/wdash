@@ -3,6 +3,6 @@ TZ: "US/Pacific"
 DB_HOST: "localhost"
 DB_PORT: 27017
 DB_NAME: "wdash"
-INTERVAL: 300
+INTERVAL: 1800
 # Your api key goes here
 API_KEY: ""
