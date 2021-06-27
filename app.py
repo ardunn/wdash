@@ -61,7 +61,7 @@ OWM_WEATHER_SIMPLE_STATUS_TO_INT = {
     "tornado": 30
 }
 
-app = dash.Dash(__name__, title="wdash", update_title="wdash")
+app = dash.Dash(__name__, title="wdash", update_title=None)
 
 
 def convert_meteorological_deg2cardinal_dir(deg_measurement):
@@ -708,7 +708,6 @@ app.layout = html.Div(
     ],
     style={"backgroundColor": "rgb(17,17,17)"}
 )
-app.title = "wdash"
 
 if __name__ == '__main__':
     pd.set_option('display.max_rows', 500)
