@@ -643,12 +643,12 @@ def generate_page(n_intervals):
         y=df_square_ints.index.tolist(),
         x=df_square_ints.columns.tolist(),
         annotation_text=df_square_statuses.values,
-        colorscale="Turbo",
+        colorscale="Bluered",
         showscale=False,
         customdata=df_square_statuses.values,
         hovertemplate="forecast:%{customdata}",
         name="Forecast",
-        font_colors=["white", "black"],
+        font_colors=["white", "white"],
     )
     figh.update_layout(
         template="plotly_dark",
