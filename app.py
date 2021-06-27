@@ -659,6 +659,8 @@ def generate_page(n_intervals):
 
 
     white_text = {"color": "white"}
+    wind_speed = int(most_recent_weather["wind.speed"]) if not np.isnan(most_recent_weather["wind.speed"]) else "Unknown"
+    wind_cardinal = most_recent_weather["wind.cardinal"]
 
     right_now = html.Div([
         html.H5(f'Current weather: {most_recent_weather["detailed_status"].capitalize() if most_recent_weather["detailed_status"] else "No current weather"}', style=white_text),
@@ -673,7 +675,7 @@ def generate_page(n_intervals):
             ]),
             html.Tr([
                 html.Td("Wind speed/direction", style=white_text),
-                html.Td(f'{int(most_recent_weather["wind.speed"])} mph @ {most_recent_weather["wind.cardinal"]}', style=white_text)
+                html.Td(f'{wind_speed} mph @ {wind_cardinal}', style=white_text)
             ]),
             html.Tr([
                 html.Td("Fetched at", style=white_text),
@@ -701,7 +703,7 @@ app.layout = html.Div(
             Updated with data from the OpenWeatherMaps API, pyOWM, and Windy.
         ''', style={"color": "white"}),
         html.Br(),
-        html.Div(id="all_info"),
+        dcc.Loading(children=html.Div(id="all_info"), type="circle")
 
     ],
     style={"backgroundColor": "rgb(17,17,17)"}

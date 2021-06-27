@@ -1,0 +1,38 @@
+2021-06-27 11:14:45,750 INFO Current weather and forecasted weather fetched
+2021-06-27 11:14:45,753 INFO Inserted current weather into DB
+2021-06-27 11:14:45,757 INFO Inserted 40 forecasted weathers into DB
+2021-06-27 11:14:45,757 INFO Waiting 1800 seconds before next fetch
+production WSGI server instead.
+ * Debug mode: off
+2021-06-27 11:14:44,472 WARNING  * Running on all addresses.
+   WARNING: This is a development server. Do not use it in a production deployment.
+2021-06-27 11:14:44,472 INFO  * Running on http://192.168.50.69:57042/ (Press CTRL+C to quit)
+2021-06-27 11:14:49,333 INFO 192.168.50.91 - - [27/Jun/2021 11:14:49] "GET / HTTP/1.1" 200 -
+2021-06-27 11:14:49,522 INFO 192.168.50.91 - - [27/Jun/2021 11:14:49] "[36mGET /assets/dash_stylesheet.css?m=1624659174.5693617 HTTP/1.1[0m" 304 -
+2021-06-27 11:14:49,947 INFO 192.168.50.91 - - [27/Jun/2021 11:14:49] "GET /_dash-layout HTTP/1.1" 200 -
+2021-06-27 11:14:49,973 INFO 192.168.50.91 - - [27/Jun/2021 11:14:49] "GET /_dash-dependencies HTTP/1.1" 200 -
+2021-06-27 11:14:49,993 INFO 192.168.50.91 - - [27/Jun/2021 11:14:49] "GET /assets/favicon.ico?m=1624659174.5693617 HTTP/1.1" 200 -
+2021-06-27 11:14:50,161 INFO Regenerating info div: times regenerated = None
+2021-06-27 11:14:50,733 INFO Expected column 'snow.3h' not found in dataframe!
+2021-06-27 11:14:50,757 INFO Creating 'temperature.temp' graph with historical error bars
+2021-06-27 11:14:50,771 WARNING Number of forecasts to show (10) for 'temperature.temp' is smaller than number of available forecasts (257) in time window of 7 days
+2021-06-27 11:14:50,934 INFO Creatimg 'precipitation_probability' graph with no error bars
+2021-06-27 11:14:50,941 WARNING Number of forecasts to show (10) for 'precipitation_probability' is smaller than number of available forecasts (257) in time window of 7 days
+2021-06-27 11:14:50,987 INFO Creatimg 'wind.speed' graph with no error bars
+2021-06-27 11:14:50,994 WARNING Number of forecasts to show (10) for 'wind.speed' is smaller than number of available forecasts (257) in time window of 7 days
+2021-06-27 11:14:51,040 INFO Creatimg 'pressure.press' graph with no error bars
+2021-06-27 11:14:51,047 WARNING Number of forecasts to show (10) for 'pressure.press' is smaller than number of available forecasts (257) in time window of 7 days
+2021-06-27 11:14:51,092 INFO Creatimg 'humidity' graph with no error bars
+2021-06-27 11:14:51,099 WARNING Number of forecasts to show (10) for 'humidity' is smaller than number of available forecasts (257) in time window of 7 days
+2021-06-27 11:14:51,144 INFO Creatimg 'visibility_distance' graph with no error bars
+2021-06-27 11:14:51,151 WARNING Number of forecasts to show (10) for 'visibility_distance' is smaller than number of available forecasts (257) in time window of 7 days
+2021-06-27 11:14:51,196 INFO Creatimg 'clouds' graph with no error bars
+2021-06-27 11:14:51,204 WARNING Number of forecasts to show (10) for 'clouds' is smaller than number of available forecasts (257) in time window of 7 days
+2021-06-27 11:14:51,265 WARNING Number of forecasts to show (10) for 'wind.cardinal' is smaller than number of available forecasts (257) in time window of 5 hours
+2021-06-27 11:14:51,306 INFO Creating 'temperature.feels_like' graph with historical error bars
+2021-06-27 11:14:51,316 WARNING Number of forecasts to show (10) for 'temperature.feels_like' is smaller than number of available forecasts (257) in time window of 7 days
+2021-06-27 11:14:51,375 INFO Creatimg 'sunrise.timeofday' graph with no error bars
+2021-06-27 11:14:51,381 INFO Creatimg 'sunset.timeofday' graph with no error bars
+2021-06-27 11:14:51,411 INFO Creatimg 'rain.3h' graph with no error bars
+2021-06-27 11:14:51,418 WARNING Number of forecasts to show (10) for 'rain.3h' is smaller than number of available forecasts (257) in time window of 7 days
+2021-06-27 11:14:51,624 INFO 192.168.50.91 - - [27/Jun/2021 11:14:51] "POST /_dash-update-component HTTP/1.1" 200 -
