@@ -1,15 +1,15 @@
-# wdash
-a weather dashboard built from OpenWeatherMaps APi, MongoDB, Windy, and Plotly Dash
+# `wdash`
+a dumb-simple weather dashboard built from OpenWeatherMaps APi, MongoDB, Windy, and Plotly Dash
 
 
-# Picture Demo
+## Picture Demo
 ![demo](demo.png)
 
-# Video Demo
+## Video Demo
 ![demo](demo.gif)
 
 
-# Install
+## Install
 
 `wdash` consists of two scripts, neither of which needs to be installed as a python module in order to run:
 
@@ -17,13 +17,13 @@ a weather dashboard built from OpenWeatherMaps APi, MongoDB, Windy, and Plotly D
 - `app.py`: The plotly dash app which will display the dashboard.
 
 
-## 1. Install mongodb for your platform, if you intend to run the database locally.
+### 1. Install mongodb for your platform, if you intend to run the database locally.
 
 You can find instructions for how to do so here: https://docs.mongodb.com/manual/administration/install-community/
 
 Next, ensure mongodb is running. You can check by trying to connect to your mongodb with the `mongo` shell command.
 
-## 2. Install python requirements
+### 2. Install python requirements
 
 Navigate to the `wdash` directory and run
 
@@ -31,38 +31,38 @@ Navigate to the `wdash` directory and run
 pip install -r requirements.txt
 ```
 
-## 3. Configure `wdash`
+### 3. Configure `wdash`
 
 
 All the variables needed to configure `wdash` are in `config.yml`. 
 
-### `CITY_ID`
+#### `CITY_ID`
 The city ID (an integer) for your city as per [OpenWeatherMaps search API](https://openweathermap.org/find). Enter your city and country name and the resulting url (e.g., https://openweathermap.org/city/5403676) contains the integer city ID (in this example, 5403676).
 
 
-### `DB_HOST`
+#### `DB_HOST`
 The host of your mongodb instance, e.g., `localhost`
 
-### `DB_PORT`
+#### `DB_PORT`
 The port of your mongodb instance, e.g., 27017
 
-### `DB_NAME`
+#### `DB_NAME`
 The name of the mongodb database you'd like to use or create to hold your wdash data, e.g., `wdash`
 
-### `INTERVAL`
-The inteval to update (gather current weathers and forecasts), in seconds. The default `1800` corresponds to  every 30 minutes.
+#### `INTERVAL`
+The interval to update (gather current weathers and forecasts), in seconds. The default `1800` corresponds to  every 30 minutes.
 
-### `PORT`
+#### `PORT`
 The port you'd like the `wdash` interface to run on.
 
-### `API_KEY`
+#### `API_KEY`
 Your OpenWeatherMaps API key. Only the free-tier API key is required for full functionality. You'll need to create a free account to get an API key.
 
-### `WINDY_EMBED`
+#### `WINDY_EMBED`
 The embeddable url for your windy map, which you can obtain from [Windy](https://www.windy.com/-Embed-widget-on-page/widgets?39.339,-120.173,5)
 
 
-# Running `wdash`
+## Running `wdash`
 
 Simply run
 
