@@ -27,6 +27,8 @@ PORT = CONFIG["DB_PORT"]
 NAME = CONFIG["DB_NAME"]
 INTERVAL = CONFIG["INTERVAL"]
 SERVER_PORT = CONFIG["PORT"]
+WINDY_EMBED = CONFIG["WINDY_EMBED"]
+
 
 mc = MongoClient(host=HOST, port=PORT)
 cw = mc[NAME].weather_current
@@ -574,7 +576,7 @@ def generate_page(n_intervals):
     common_style = {"width": "95%", "height": "700px", "margin": "auto", "border": "30px"}
     widget = html.Iframe(
         style=common_style,
-        src="https://embed.windy.com/embed2.html?lat=39.339&lon=-120.173&detailLat=39.339&detailLon=-120.173&width=650&height=450&zoom=5&level=surface&overlay=wind&product=ecmwf&menu=&message=&marker=&calendar=now&pressure=&type=map&location=coordinates&detail=&metricWind=mph&metricTemp=%C2%B0F&radarRange=-1"
+        src=WINDY_EMBED
     )
 
 

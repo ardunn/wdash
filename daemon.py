@@ -16,7 +16,6 @@ with open(os.path.join(THIS_DIR, "config.yml"), "r") as config_file:
 HOST = CONFIG["DB_HOST"]
 PORT = CONFIG["DB_PORT"]
 NAME = CONFIG["DB_NAME"]
-TZ = CONFIG["TZ"]
 INTERVAL = CONFIG["INTERVAL"]
 CITY_ID = CONFIG["CITY_ID"]
 API_KEY = CONFIG["API_KEY"]
@@ -26,7 +25,6 @@ cw = mc[NAME].weather_current
 cf = mc[NAME].weather_forecasted
 owm = OWM(API_KEY)
 mgr = owm.weather_manager()
-TZ_PYTZ = pytz.timezone(TZ)
 TIMEOUT_INTERVAL = 60          # seconds
 handler = logging.StreamHandler()
 formatter = logging.basicConfig(format='%(asctime)s %(levelname)s %(message)s', level=logging.INFO)

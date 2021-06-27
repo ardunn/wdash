@@ -1,5 +1,4 @@
 CITY_ID: 5403676
-TZ: "US/Pacific"
 DB_HOST: "localhost"
 DB_PORT: 27017
 DB_NAME: "wdash"
@@ -7,3 +6,4 @@ INTERVAL: 1800
 PORT: 57042
 # Your api key goes here
 API_KEY: ""
+WINDY_EMBED: "https://embed.windy.com/embed2.html?lat=39.339&lon=-120.173&detailLat=39.339&detailLon=-120.173&width=650&height=450&zoom=5&level=surface&overlay=wind&product=ecmwf&menu=&message=&marker=&calendar=now&pressure=&type=map&location=coordinates&detail=&metricWind=mph&metricTemp=%C2%B0F&radarRange=-1"
