@@ -2,6 +2,10 @@
 a weather dashboard built from OpenWeatherMaps APi, MongoDB, Windy, and Plotly Dash
 
 
+# Picture Demo
+![demo](demo.png)
+
+# Video Demo
 ![demo](demo.gif)
 
 
