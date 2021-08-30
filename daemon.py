@@ -7,7 +7,7 @@ from datetime import datetime
 import time
 import yaml
 import os
-
+import requests
 
 THIS_DIR = os.path.abspath(os.path.dirname(__file__))
 with open(os.path.join(THIS_DIR, "config.yml"), "r") as config_file:
@@ -17,12 +17,15 @@ HOST = CONFIG["DB_HOST"]
 PORT = CONFIG["DB_PORT"]
 NAME = CONFIG["DB_NAME"]
 INTERVAL = CONFIG["INTERVAL"]
-CITY_ID = CONFIG["CITY_ID"]
+LAT = CONFIG["LAT"]
+LON = CONFIG["LON"]
 API_KEY = CONFIG["API_KEY"]
 
 mc = MongoClient(host=HOST, port=PORT)
 cw = mc[NAME].weather_current
 cf = mc[NAME].weather_forecasted
+ca = mc[NAME].aqi_current
+caf = mc[NAME].aqi_forecasted
 owm = OWM(API_KEY)
 mgr = owm.weather_manager()
 TIMEOUT_INTERVAL = 60          # seconds
@@ -35,7 +38,12 @@ def get_current_weather():
     Get current weather as dictionary, with correct units converted.
     :return:
     """
-    w = mgr.weather_at_id(CITY_ID).weather.to_dict()
+    # r = requests.get(f"http://api.openweathermap.org/data/2.5/weather?lat={LAT}&lon={LON}&appid={API_KEY}")
+    # w = r.json()
+
+    w = mgr.weather_at_coords(LAT, LON).to_dict()["weather"]
+    # w = mgr.weather_at_id(5403676).weather.to_dict()
+    # print(w)
     w_converted = convert_units_weather_dict(w)
     return w_converted
 
@@ -45,7 +53,9 @@ def get_forecast_weathers():
     Get forecasted weathers as list of dictionaries, with correct units converted.
     :return:
     """
-    f = mgr.forecast_at_id(CITY_ID, "3h").forecast.weathers
+    # r = requests.get(f"http://api.openweathermap.org/data/2.5/forecast?lat={LAT}&lon={LON}&appid={API_KEY}")
+    # f = r.json()
+    f = mgr.forecast_at_coords(LAT, LON, "3h").forecast.weathers
     f = [convert_units_weather_dict(w.to_dict()) for w in f]
     for i in f:
         # avoid fetched times being very close together but not identical
@@ -53,8 +63,22 @@ def get_forecast_weathers():
     return f
 
 
-def convert_units_weather_dict(weather):
+def get_air_pollution():
+    r = requests.get(f"http://api.openweathermap.org/data/2.5/air_pollution?lat={LAT}&lon={LON}&appid={API_KEY}")
+    a = r.json()["list"][0]
+    a = convert_format_air_pollution(a)
+    return a
 
+
+def get_forecast_air_pollution():
+    r = requests.get(f"http://api.openweathermap.org/data/2.5/air_pollution/forecast?lat={LAT}&lon={LON}&appid={API_KEY}")
+    f = r.json()["list"]
+    f = [convert_format_air_pollution(a) for a in f]
+    # get every 10th entry as to not overwhelm db
+    return f[::10]
+
+
+def convert_units_weather_dict(weather):
     for k in ["sunset_time", "sunrise_time"]:
         if weather.get(k, None):
             weather[k] = local_timestamp2local_datetime(weather[k])
@@ -65,6 +89,14 @@ def convert_units_weather_dict(weather):
     weather["wind"]["speed"] = weather["wind"]["speed"] * 2.237
     weather["fetched_at"] = datetime.now()
     return weather
+
+
+def convert_format_air_pollution(air_pollution):
+    d = air_pollution["components"]
+    d.update(air_pollution["main"])
+    d["datetime"] = local_timestamp2local_datetime(air_pollution["dt"])
+    d["fetched_at"] = datetime.now()
+    return d
 
 
 def local_timestamp2local_datetime(timestamp):
@@ -81,11 +113,23 @@ def main():
         try:
             w = get_current_weather()
             f = get_forecast_weathers()
-            logging.info("Current weather and forecasted weather fetched")
+
+            a = get_air_pollution()
+            fa = get_forecast_air_pollution()
+            logging.info("Current data and forecasts fetched")
+
             cw.insert_one(w)
             logging.info("Inserted current weather into DB")
+
             cf.insert_many(f)
             logging.info(f"Inserted {len(f)} forecasted weathers into DB")
+
+            ca.insert_one(a)
+            logging.info("Inserted current AQI into DB")
+
+            caf.insert_many(fa)
+            logging.info(f"Inserted {len(fa)} forecasted AQIs into DB")
+
             logging.info(f"Waiting {INTERVAL} seconds before next fetch")
             time.sleep(INTERVAL)
         except InvalidSSLCertificateError:
