@@ -4,7 +4,7 @@ LON: -120.22110
 DB_HOST: 192.168.50.69
 DB_PORT: 27017
 DB_NAME: "wdash"
-INTERVAL: 60
+INTERVAL: 1800
 PORT: 57042
 # Your api key goes here
 API_KEY: ""
