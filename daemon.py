@@ -8,6 +8,8 @@ import time
 import yaml
 import os
 import requests
+import traceback
+import sys
 
 THIS_DIR = os.path.abspath(os.path.dirname(__file__))
 with open(os.path.join(THIS_DIR, "config.yml"), "r") as config_file:
@@ -135,6 +137,11 @@ def main():
         except InvalidSSLCertificateError:
             logging.warning(f"Bad connection, waiting {TIMEOUT_INTERVAL} seconds...")
             time.sleep(TIMEOUT_INTERVAL)
+        except BaseException:
+            exc_type, exc_value, exc_traceback = sys.exc_info()
+            tbf = traceback.format_exception(exc_type, exc_value, exc_traceback)
+            logging.critical("Critical wdash daemon error:")
+            logging.critical(tbf)
 
 
 if __name__ == "__main__":

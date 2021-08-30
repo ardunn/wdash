@@ -14,6 +14,8 @@ import plotly.figure_factory as ff
 import pandas as pd
 import numpy as np
 import logging
+import sys
+import traceback
 
 handler = logging.StreamHandler()
 formatter = logging.basicConfig(format='%(asctime)s %(levelname)s %(message)s', level=logging.INFO)
@@ -202,6 +204,9 @@ def create_aqi_df():
     dt_cols = ["datetime", "fetched_at"]
     dt_cols_str = [d + "_str" for d in dt_cols]
     adf[dt_cols_str] = adf[dt_cols].apply(datetime2string)
+
+    adf["aqi"] = adf["aqi"].apply(lambda x: {1: "great", 2: "fair", 3: "moderate", 4: "poor", 5: "hazardous"}[x])
+
     return adf
 
 
@@ -437,413 +442,413 @@ def wind_direction_graph(df_wind, history_rgb, forecast_rgb):
     Input(component_id="interval", component_property="n_intervals")
 )
 def generate_page(n_intervals):
-    logging.info(f"Regenerating info div: times regenerated = {n_intervals}")
-    df = create_df()
 
-    adf = create_aqi_df()
+    try:
+        logging.info(f"Regenerating info div: times regenerated = {n_intervals}")
+        df = create_df()
 
-    fig_temp = create_time_figure(
-        df,
-        "temperature.temp",
-        "Temperature (F)",
-        show_forecast=True,
-        show_history=True,
-        column_error_min="temperature.temp_min",
-        column_error_max="temperature.temp_max",
-        history_rgb="rgb(255,0,0)",
-        forecast_rgb=FORECAST_RGB
-    )
+        adf = create_aqi_df()
 
-    fig_precipitation_prob = create_time_figure(
-        df,
-        "precipitation_probability",
-        "Probability of precipitation",
-        show_forecast=True,
-        show_history=True,
-        history_rgb="rgb(0,0,255)",
-        forecast_rgb=FORECAST_RGB
-    )
+        fig_temp = create_time_figure(
+            df,
+            "temperature.temp",
+            "Temperature (F)",
+            show_forecast=True,
+            show_history=True,
+            column_error_min="temperature.temp_min",
+            column_error_max="temperature.temp_max",
+            history_rgb="rgb(255,0,0)",
+            forecast_rgb=FORECAST_RGB
+        )
 
-    fig_windspeed = create_time_figure(
-        df,
-        "wind.speed",
-        "Wind speed (mph)",
-        show_forecast=True,
-        show_history=True,
-        history_rgb="rgb(0,255,0)",
-        forecast_rgb=FORECAST_RGB
-    )
+        fig_precipitation_prob = create_time_figure(
+            df,
+            "precipitation_probability",
+            "Probability of precipitation",
+            show_forecast=True,
+            show_history=True,
+            history_rgb="rgb(0,0,255)",
+            forecast_rgb=FORECAST_RGB
+        )
 
-    fig_pressure = create_time_figure(
-        df,
-        "pressure.press",
-        "Pressure (hPa)",
-        show_forecast=True,
-        show_history=True,
-        history_rgb="rgb(255,51,153)",
-        forecast_rgb=FORECAST_RGB,
-    )
+        fig_windspeed = create_time_figure(
+            df,
+            "wind.speed",
+            "Wind speed (mph)",
+            show_forecast=True,
+            show_history=True,
+            history_rgb="rgb(0,255,0)",
+            forecast_rgb=FORECAST_RGB
+        )
 
-    fig_humidity = create_time_figure(
-        df,
-        "humidity",
-        "Humidity (%)",
-        show_forecast=True,
-        show_history=True,
-        history_rgb='rgb(255,255,153)',
-        forecast_rgb=FORECAST_RGB,
-    )
+        fig_pressure = create_time_figure(
+            df,
+            "pressure.press",
+            "Pressure (hPa)",
+            show_forecast=True,
+            show_history=True,
+            history_rgb="rgb(255,51,153)",
+            forecast_rgb=FORECAST_RGB,
+        )
 
-    fig_visibility = create_time_figure(
-        df,
-        "visibility_distance",
-        "Visibility distance (m)",
-        show_forecast=True,
-        show_history=True,
-        history_rgb='rgb(153,0,76)',
-        forecast_rgb=FORECAST_RGB,
-    )
+        fig_humidity = create_time_figure(
+            df,
+            "humidity",
+            "Humidity (%)",
+            show_forecast=True,
+            show_history=True,
+            history_rgb='rgb(255,255,153)',
+            forecast_rgb=FORECAST_RGB,
+        )
 
-    fig_cloud_cover = create_time_figure(
-        df,
-        "clouds",
-        "Cloud coverage (%)",
-        show_forecast=True,
-        show_history=True,
-        history_rgb='rgb(0,255,255)',
-        forecast_rgb=FORECAST_RGB
-    )
+        fig_visibility = create_time_figure(
+            df,
+            "visibility_distance",
+            "Visibility distance (m)",
+            show_forecast=True,
+            show_history=True,
+            history_rgb='rgb(153,0,76)',
+            forecast_rgb=FORECAST_RGB,
+        )
 
-    fig_winddeg = wind_direction_graph(
-        df,
-        "rgb(204,0,102)",
-        forecast_rgb=FORECAST_RGB
-    )
+        # fig_cloud_cover = create_time_figure(
+        #     df,
+        #     "clouds",
+        #     "Cloud coverage (%)",
+        #     show_forecast=True,
+        #     show_history=True,
+        #     history_rgb='rgb(0,255,255)',
+        #     forecast_rgb=FORECAST_RGB
+        # )
 
-    fig_feels_like = create_time_figure(
-        df,
-        "temperature.feels_like",
-        "Temperature feels like (F)",
-        show_forecast=True,
-        show_history=True,
-        column_error_min="temperature.temp_min",
-        column_error_max="temperature.temp_max",
-        history_rgb="rgb(255,255,0)",
-        forecast_rgb=FORECAST_RGB
-    )
+        fig_winddeg = wind_direction_graph(
+            df,
+            "rgb(204,0,102)",
+            forecast_rgb=FORECAST_RGB
+        )
 
-    graphs_sunrise = create_time_figure(
-        df,
-        "sunrise.timeofday",
-        None,
-        show_history=True,
-        show_forecast=False,
-        history_rgb="rgb(255,255,51)",
-        as_type="graphs",
-        line_only_graph_type="lines",
-        custom_main_trace_label="Sunrise"
-    )
+        fig_feels_like = create_time_figure(
+            df,
+            "temperature.feels_like",
+            "Temperature feels like (F)",
+            show_forecast=True,
+            show_history=True,
+            column_error_min="temperature.temp_min",
+            column_error_max="temperature.temp_max",
+            history_rgb="rgb(255,255,0)",
+            forecast_rgb=FORECAST_RGB
+        )
 
-    graphs_sunset = create_time_figure(
-        df,
-        "sunset.timeofday",
-        None,
-        show_history=True,
-        show_forecast=False,
-        history_rgb="rgb(255,128,0)",
-        as_type="graphs",
-        line_only_graph_type="lines",
-        custom_main_trace_label="Sunset"
-    )
+        graphs_sunrise = create_time_figure(
+            df,
+            "sunrise.timeofday",
+            None,
+            show_history=True,
+            show_forecast=False,
+            history_rgb="rgb(255,255,51)",
+            as_type="graphs",
+            line_only_graph_type="lines",
+            custom_main_trace_label="Sunrise"
+        )
 
-    fig_suntimes = go.Figure(graphs_sunset + graphs_sunrise)
-    fig_suntimes.update_layout(
-        template="plotly_dark",
-        title="Sunrise and Sunsets"
-    )
+        graphs_sunset = create_time_figure(
+            df,
+            "sunset.timeofday",
+            None,
+            show_history=True,
+            show_forecast=False,
+            history_rgb="rgb(255,128,0)",
+            as_type="graphs",
+            line_only_graph_type="lines",
+            custom_main_trace_label="Sunset"
+        )
 
-    fig_rainaccu = create_time_figure(
-        df,
-        "rain.3h",
-        "Rain accumulation over past 3h (mm)",
-        show_history=True,
-        show_forecast=True,
-        history_rgb="rgb(7,130,255)",
-        forecast_rgb=FORECAST_RGB
-    )
+        fig_suntimes = go.Figure(graphs_sunset + graphs_sunrise)
+        fig_suntimes.update_layout(
+            template="plotly_dark",
+            title="Sunrise and Sunsets"
+        )
 
-    fig_aqi = create_time_figure(
-        adf,
-        "aqi",
-        "Adjusted AQI (1 [good] - 5 [hazardous])",
-        show_history=True,
-        show_forecast=True,
-        history_rgb="rgb(7,130,255)",
-        forecast_rgb=FORECAST_RGB
-    )
+        fig_rainaccu = create_time_figure(
+            df,
+            "rain.3h",
+            "Rain accumulation over past 3h (mm)",
+            show_history=True,
+            show_forecast=True,
+            history_rgb="rgb(7,130,255)",
+            forecast_rgb=FORECAST_RGB
+        )
 
+        fig_aqi = create_time_figure(
+            adf,
+            "aqi",
+            "Adjusted AQI",
+            show_history=True,
+            show_forecast=True,
+            history_rgb="rgb(7,130,255)",
+            forecast_rgb=FORECAST_RGB
+        )
+        fig_aqi.update_yaxes(type="category", categoryorder="array", categoryarray=["great", "fair", "moderate", "poor", "hazardous"])
 
-    trace_pollutants_forecasts = False
-    trace_pollutants_markers = "lines"
+        trace_pollutants_forecasts = False
+        trace_pollutants_markers = "lines"
 
-    graphs_co = create_time_figure(
-        adf,
-        "co",
-        None,
-        show_history=True,
-        show_forecast=trace_pollutants_forecasts,
-        history_rgb="rgb(122,120,227)",
-        as_type="graphs",
-        line_only_graph_type=trace_pollutants_markers,
-        custom_main_trace_label="CO"
-    )
+        graphs_co = create_time_figure(
+            adf,
+            "co",
+            None,
+            show_history=True,
+            show_forecast=trace_pollutants_forecasts,
+            history_rgb="rgb(122,120,227)",
+            as_type="graphs",
+            line_only_graph_type=trace_pollutants_markers,
+            custom_main_trace_label="CO"
+        )
 
-    graphs_no = create_time_figure(
-        adf,
-        "no",
-        None,
-        show_history=True,
-        show_forecast=trace_pollutants_forecasts,
-        history_rgb="rgb(112,224,208)",
-        as_type="graphs",
-        line_only_graph_type=trace_pollutants_markers,
-        custom_main_trace_label="NO"
-    )
+        graphs_no = create_time_figure(
+            adf,
+            "no",
+            None,
+            show_history=True,
+            show_forecast=trace_pollutants_forecasts,
+            history_rgb="rgb(112,224,208)",
+            as_type="graphs",
+            line_only_graph_type=trace_pollutants_markers,
+            custom_main_trace_label="NO"
+        )
 
-    graphs_no2 = create_time_figure(
-        adf,
-        "no2",
-        None,
-        show_history=True,
-        show_forecast=trace_pollutants_forecasts,
-        history_rgb="rgb(224,112,118)",
-        as_type="graphs",
-        line_only_graph_type=trace_pollutants_markers,
-        custom_main_trace_label="NO2"
-    )
+        graphs_no2 = create_time_figure(
+            adf,
+            "no2",
+            None,
+            show_history=True,
+            show_forecast=trace_pollutants_forecasts,
+            history_rgb="rgb(224,112,118)",
+            as_type="graphs",
+            line_only_graph_type=trace_pollutants_markers,
+            custom_main_trace_label="NO2"
+        )
 
-    graphs_o3 = create_time_figure(
-        adf,
-        "o3",
-        None,
-        show_history=True,
-        show_forecast=trace_pollutants_forecasts,
-        history_rgb="rgb(76,153,60)",
-        as_type="graphs",
-        line_only_graph_type=trace_pollutants_markers,
-        custom_main_trace_label="O3"
-    )
+        graphs_o3 = create_time_figure(
+            adf,
+            "o3",
+            None,
+            show_history=True,
+            show_forecast=trace_pollutants_forecasts,
+            history_rgb="rgb(76,153,60)",
+            as_type="graphs",
+            line_only_graph_type=trace_pollutants_markers,
+            custom_main_trace_label="O3"
+        )
 
-    graphs_nh3 = create_time_figure(
-        adf,
-        "nh3",
-        None,
-        show_history=True,
-        show_forecast=trace_pollutants_forecasts,
-        history_rgb="rgb(136,163,60)",
-        as_type="graphs",
-        line_only_graph_type=trace_pollutants_markers,
-        custom_main_trace_label="NH3"
-    )
+        graphs_nh3 = create_time_figure(
+            adf,
+            "nh3",
+            None,
+            show_history=True,
+            show_forecast=trace_pollutants_forecasts,
+            history_rgb="rgb(136,163,60)",
+            as_type="graphs",
+            line_only_graph_type=trace_pollutants_markers,
+            custom_main_trace_label="NH3"
+        )
 
-    graphs_so2 = create_time_figure(
-        adf,
-        "so2",
-        None,
-        show_history=True,
-        show_forecast=trace_pollutants_forecasts,
-        history_rgb="rgb(145,145,145)",
-        as_type="graphs",
-        line_only_graph_type=trace_pollutants_markers,
-        custom_main_trace_label="SO2"
-    )
+        graphs_so2 = create_time_figure(
+            adf,
+            "so2",
+            None,
+            show_history=True,
+            show_forecast=trace_pollutants_forecasts,
+            history_rgb="rgb(145,145,145)",
+            as_type="graphs",
+            line_only_graph_type=trace_pollutants_markers,
+            custom_main_trace_label="SO2"
+        )
 
+        fig_pollutants = go.Figure(
+            graphs_co + graphs_no + graphs_no2 + graphs_o3 + graphs_nh3 + graphs_so2
+        )
+        fig_pollutants.update_layout(
+            template="plotly_dark",
+            title="Trace Air Pollutants (ug/m^3)"
+        )
+        fig_pollutants.update_yaxes(type="log", title="Pollutant concentration")
 
-    fig_pollutants = go.Figure(
-        graphs_co + graphs_no + graphs_no2 + graphs_o3 + graphs_nh3 + graphs_so2
-    )
-    fig_pollutants.update_layout(
-        template="plotly_dark",
-        title="Trace Air Pollutants (ug/m^3)"
-    )
-    fig_pollutants.update_yaxes(type="log", title="Pollutant concentration")
+        fig_pm25 = create_time_figure(
+            adf,
+            "pm2_5",
+            "Fine Particulate Matter PM2.5 (ug/m^3)",
+            show_history=True,
+            show_forecast=True,
+            history_rgb="rgb(255,0,0)",
+            forecast_rgb=FORECAST_RGB
+        )
 
-    fig_pm25 = create_time_figure(
-        adf,
-        "pm2_5",
-        "Fine Particulate Matter PM2.5 (ug/m^3)",
-        show_history=True,
-        show_forecast=True,
-        history_rgb="rgb(255,0,0)",
-        forecast_rgb=FORECAST_RGB
-    )
+        fig_pm10 = create_time_figure(
+            adf,
+            "pm10",
+            "Coarse Particulate Matter PM10 (ug/m^3)",
+            show_history=True,
+            show_forecast=True,
+            history_rgb="rgb(43,0,237)",
+            forecast_rgb=FORECAST_RGB
+        )
 
-    fig_pm10 = create_time_figure(
-        adf,
-        "pm10",
-        "Coarse Particulate Matter PM10 (ug/m^3)",
-        show_history=True,
-        show_forecast=True,
-        history_rgb="rgb(43,0,237)",
-        forecast_rgb=FORECAST_RGB
-    )
-
-
-
-
-    graphs = [
-        dcc.Graph(id='graph_temperature',figure=fig_temp),
-        dcc.Graph(id="graph_feels_like", figure=fig_feels_like),
-        dcc.Graph(id='graph_precipitation_probability', figure=fig_precipitation_prob),
-        dcc.Graph(id='graph_rain_accumulation', figure=fig_rainaccu),
-        dcc.Graph(id='graph_windspeed', figure=fig_windspeed),
-        dcc.Graph(id="graph_winddeg", figure=fig_winddeg),
-        dcc.Graph(id="graph_pressure", figure=fig_pressure),
-        dcc.Graph(id="graph_humidty", figure=fig_humidity),
-        dcc.Graph(id="graph_visibility", figure=fig_visibility),
-        # dcc.Graph(id="graph_cloud_coverage", figure=fig_cloud_cover),
-        dcc.Graph(id="graph_suntimes", figure=fig_suntimes),
-        dcc.Graph(id="graph_aqi", figure=fig_aqi),
-        dcc.Graph(id="graph_pollutants", figure=fig_pollutants),
-        dcc.Graph(id="graph_pm25", figure=fig_pm25),
-        dcc.Graph(id="graph_pm10", figure=fig_pm10)
-    ]
-    divs = []
-
-
-    for i in range(0, len(graphs) - 1, 2):
-        d1 = html.Div(graphs[i], className="six columns")
-        d2 = html.Div(graphs[i+1], className="six columns")
-        divs.append(html.Div([d1, d2], className="row"))
-
-    if len(graphs) % 2 != 0:
-        divs.append(html.Div(graphs[-1], className="row"))
+        graphs = [
+            dcc.Graph(id='graph_temperature',figure=fig_temp),
+            dcc.Graph(id="graph_feels_like", figure=fig_feels_like),
+            dcc.Graph(id='graph_precipitation_probability', figure=fig_precipitation_prob),
+            dcc.Graph(id='graph_rain_accumulation', figure=fig_rainaccu),
+            dcc.Graph(id='graph_windspeed', figure=fig_windspeed),
+            dcc.Graph(id="graph_winddeg", figure=fig_winddeg),
+            dcc.Graph(id="graph_pressure", figure=fig_pressure),
+            dcc.Graph(id="graph_humidty", figure=fig_humidity),
+            dcc.Graph(id="graph_visibility", figure=fig_visibility),
+            # the cloud coverage data is somewhat too noisy to use for anything useful
+            # dcc.Graph(id="graph_cloud_coverage", figure=fig_cloud_cover),
+            dcc.Graph(id="graph_suntimes", figure=fig_suntimes),
+            dcc.Graph(id="graph_aqi", figure=fig_aqi),
+            dcc.Graph(id="graph_pollutants", figure=fig_pollutants),
+            dcc.Graph(id="graph_pm25", figure=fig_pm25),
+            dcc.Graph(id="graph_pm10", figure=fig_pm10)
+        ]
+        divs = []
 
 
-    # top rows
-    common_style = {"width": "95%", "height": "700px", "margin": "auto", "border": "30px"}
-    widget = html.Iframe(
-        style=common_style,
-        src=WINDY_EMBED
-    )
+        for i in range(0, len(graphs) - 1, 2):
+            d1 = html.Div(graphs[i], className="six columns")
+            d2 = html.Div(graphs[i+1], className="six columns")
+            divs.append(html.Div([d1, d2], className="row"))
+
+        if len(graphs) % 2 != 0:
+            divs.append(html.Div(graphs[-1], className="row"))
 
 
-    df["timedeltas_datetime"] = df["datetime"] - datetime.datetime.now()
-    df["timedeltas_fetched"] = datetime.datetime.now() - df["fetched_at"]
-
-    # get most recent datum according to timedelta fetched time
-    most_recent_historical_idx = df[df["origin"] == "history"]["timedeltas_fetched"].idxmin()
-    most_recent_weather = df.loc[most_recent_historical_idx]
-
-    # get most recent forecast for next N days
-    most_recent_forecast_idx = df[df["origin"] == "forecast"]["timedeltas_fetched"].idxmin()
-    most_recent_forecast_fetched_at = df["fetched_at_str"].loc[most_recent_forecast_idx]
-
-    df_forecast_most_recent = df[
-        (df["origin"] == "forecast") & (df["fetched_at_str"] == most_recent_forecast_fetched_at)]
+        # top rows
+        common_style = {"width": "95%", "height": "700px", "margin": "auto", "border": "30px"}
+        widget = html.Iframe(
+            style=common_style,
+            src=WINDY_EMBED
+        )
 
 
-    # df_hm = df_forecast_most_recent.append(most_recent_weather)
-    df_hm = df_forecast_most_recent
-    df_hm = df_hm.sort_values(by=["datetime"])
-    DOWS = {
-        0: "Monday",
-        1: "Tuesday",
-        2: "Wednesday",
-        3: "Thursday",
-        4: "Friday",
-        5: "Saturday",
-        6: "Sunday"
-    }
-    df_hm["dow"] = df_hm["datetime"].apply(lambda x: DOWS[x.weekday()])
-    df_hm["hour"] = df_hm["datetime"].apply(lambda x: x.hour)
+        df["timedeltas_datetime"] = df["datetime"] - datetime.datetime.now()
+        df["timedeltas_fetched"] = datetime.datetime.now() - df["fetched_at"]
 
-    square_index = list(reversed(df_hm["dow"].unique().tolist()))
-    hours_index = [2, 5, 8, 11, 14, 17, 20, 23]
+        # get most recent datum according to timedelta fetched time
+        most_recent_historical_idx = df[df["origin"] == "history"]["timedeltas_fetched"].idxmin()
+        most_recent_weather = df.loc[most_recent_historical_idx]
 
-    df_square_statuses = pd.DataFrame("no status", columns=hours_index, index=square_index)
-    df_square_ints = pd.DataFrame(np.nan, columns=hours_index, index=square_index)
+        # get most recent forecast for next N days
+        most_recent_forecast_idx = df[df["origin"] == "forecast"]["timedeltas_fetched"].idxmin()
+        most_recent_forecast_fetched_at = df["fetched_at_str"].loc[most_recent_forecast_idx]
 
-    for entry in df_hm.iterrows():
-        d = entry[1]["dow"]
-        h = entry[1]["hour"]
-        s = entry[1]["status"] # simple status
-        df_square_statuses.at[d, h] = "" if s == "no status" else s
-        df_square_ints.at[d, h] = OWM_WEATHER_SIMPLE_STATUS_TO_INT[s.lower()]
+        df_forecast_most_recent = df[
+            (df["origin"] == "forecast") & (df["fetched_at_str"] == most_recent_forecast_fetched_at)]
 
 
-    # heatmap = go.Heatmap(
-    #     z=df_square_ints.values,
-    #     y=df_square_ints.index,
-    #     x=df_square_ints.columns,
-    #     hoverongaps=False,
-    #     customdata=df_square_statuses.values,
-    #     hovertemplate="forecast:%{customdata}",
-    #     colorbar=False
-    # )
-    #
-    # figh = go.Figure(data=heatmap)
+        # df_hm = df_forecast_most_recent.append(most_recent_weather)
+        df_hm = df_forecast_most_recent
+        df_hm = df_hm.sort_values(by=["datetime"])
+        DOWS = {
+            0: "Monday",
+            1: "Tuesday",
+            2: "Wednesday",
+            3: "Thursday",
+            4: "Friday",
+            5: "Saturday",
+            6: "Sunday"
+        }
+        df_hm["dow"] = df_hm["datetime"].apply(lambda x: DOWS[x.weekday()])
+        df_hm["hour"] = df_hm["datetime"].apply(lambda x: x.hour)
+
+        square_index = list(reversed(df_hm["dow"].unique().tolist()))
+        hours_index = [2, 5, 8, 11, 14, 17, 20, 23]
+
+        df_square_statuses = pd.DataFrame("no status", columns=hours_index, index=square_index)
+        df_square_ints = pd.DataFrame(np.nan, columns=hours_index, index=square_index)
+
+        for entry in df_hm.iterrows():
+            d = entry[1]["dow"]
+            h = entry[1]["hour"]
+            s = entry[1]["status"] # simple status
+            df_square_statuses.at[d, h] = "" if s == "no status" else s
+            df_square_ints.at[d, h] = OWM_WEATHER_SIMPLE_STATUS_TO_INT[s.lower()]
+
+
+        # heatmap = go.Heatmap(
+        #     z=df_square_ints.values,
+        #     y=df_square_ints.index,
+        #     x=df_square_ints.columns,
+        #     hoverongaps=False,
+        #     customdata=df_square_statuses.values,
+        #     hovertemplate="forecast:%{customdata}",
+        #     colorbar=False
+        # )
+        #
+        # figh = go.Figure(data=heatmap)
 
 
 
-    figh = ff.create_annotated_heatmap(
-        df_square_ints.values,
-        y=df_square_ints.index.tolist(),
-        x=df_square_ints.columns.tolist(),
-        annotation_text=df_square_statuses.values,
-        colorscale="Bluered",
-        showscale=False,
-        customdata=df_square_statuses.values,
-        hovertemplate="forecast:%{customdata}",
-        name="Forecast",
-        font_colors=["white", "white"],
-    )
-    figh.update_layout(
-        template="plotly_dark",
-        title="Abbreviated forecasts",
-        xaxis=dict(title="Hour", showgrid=False),
-        yaxis=dict(title="Weekday", showgrid=False)
+        figh = ff.create_annotated_heatmap(
+            df_square_ints.values,
+            y=df_square_ints.index.tolist(),
+            x=df_square_ints.columns.tolist(),
+            annotation_text=df_square_statuses.values,
+            colorscale="Bluered",
+            showscale=False,
+            customdata=df_square_statuses.values,
+            hovertemplate="forecast:%{customdata}",
+            name="Forecast",
+            font_colors=["white", "white"],
+        )
+        figh.update_layout(
+            template="plotly_dark",
+            title="Abbreviated forecasts",
+            xaxis=dict(title="Hour", showgrid=False),
+            yaxis=dict(title="Weekday", showgrid=False)
 
-    )
-    g = dcc.Graph(id="graph_heatmap", figure=figh)
+        )
+        g = dcc.Graph(id="graph_heatmap", figure=figh)
 
 
-    white_text = {"color": "white"}
-    wind_speed = int(most_recent_weather["wind.speed"]) if not np.isnan(most_recent_weather["wind.speed"]) else "Unknown"
-    wind_cardinal = most_recent_weather["wind.cardinal"]
+        white_text = {"color": "white"}
+        wind_speed = int(most_recent_weather["wind.speed"]) if not np.isnan(most_recent_weather["wind.speed"]) else "Unknown"
+        wind_cardinal = most_recent_weather["wind.cardinal"]
 
-    right_now = html.Div([
-        html.H5(f'Current weather: {most_recent_weather["detailed_status"].capitalize() if most_recent_weather["detailed_status"] else "No current weather"}', style=white_text),
-        html.Table([
-            html.Tr([
-                html.Td("Temperature", style=white_text),
-                html.Td(f'{int(most_recent_weather["temperature.temp"])}F (feels like {int(most_recent_weather["temperature.feels_like"])}F)', style=white_text)
-            ]),
-            html.Tr([
-                html.Td("Precipitation prob./accum (3h)", style=white_text),
-                html.Td(f'{most_recent_weather["precipitation_probability"]}/{most_recent_weather["rain.3h"]}mm', style=white_text)
-                # html.Td("K", style=white_text)
-            ]),
-            html.Tr([
-                html.Td("Wind speed/direction", style=white_text),
-                html.Td(f'{wind_speed} mph @ {wind_cardinal}', style=white_text)
-            ]),
-            html.Tr([
-                html.Td("Fetched at", style=white_text),
-                html.Td(f'{most_recent_weather["fetched_at_str"]}', style=white_text)
+        right_now = html.Div([
+            html.H5(f'Current weather: {most_recent_weather["detailed_status"].capitalize() if most_recent_weather["detailed_status"] else "No current weather"}', style=white_text),
+            html.Table([
+                html.Tr([
+                    html.Td("Temperature", style=white_text),
+                    html.Td(f'{int(most_recent_weather["temperature.temp"])}F (feels like {int(most_recent_weather["temperature.feels_like"])}F)', style=white_text)
+                ]),
+                html.Tr([
+                    html.Td("Precipitation prob./accum (3h)", style=white_text),
+                    html.Td(f'{most_recent_weather["precipitation_probability"]}/{most_recent_weather["rain.3h"]}mm', style=white_text)
+                    # html.Td("K", style=white_text)
+                ]),
+                html.Tr([
+                    html.Td("Wind speed/direction", style=white_text),
+                    html.Td(f'{wind_speed} mph @ {wind_cardinal}', style=white_text)
+                ]),
+                html.Tr([
+                    html.Td("Fetched at", style=white_text),
+                    html.Td(f'{most_recent_weather["fetched_at_str"]}', style=white_text)
+                ])
+
             ])
 
-        ])
-
-    ], style={'padding-left': '40px', 'padding-right': '40px', "marginLeft": "auto", "marginRight": "auto"})
-    col1 = html.Div([right_now, g], className="six columns")
-    col2 = html.Div(widget, className="six columns")
-    toprow = html.Div([col1, col2], className="row")
-    return html.Div([toprow] + divs)
-
-
-
-
+        ], style={'padding-left': '40px', 'padding-right': '40px', "marginLeft": "auto", "marginRight": "auto"})
+        col1 = html.Div([right_now, g], className="six columns")
+        col2 = html.Div(widget, className="six columns")
+        toprow = html.Div([col1, col2], className="row")
+        return html.Div([toprow] + divs)
+    except BaseException:
+        exc_type, exc_value, exc_traceback = sys.exc_info()
+        tbf = traceback.format_exception(exc_type, exc_value, exc_traceback)
+        logging.critical("Critical wdash webapp error:")
+        logging.critical(tbf)
 
 
 app.layout = html.Div(
