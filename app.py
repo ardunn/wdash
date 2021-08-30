@@ -33,7 +33,8 @@ WINDY_EMBED = CONFIG["WINDY_EMBED"]
 mc = MongoClient(host=HOST, port=PORT)
 cw = mc[NAME].weather_current
 cf = mc[NAME].weather_forecasted
-
+ca = mc[NAME].aqi_current
+caf = mc[NAME].aqi_forecasted
 
 N_FORECASTS_SHOWN = 10
 N_FORECAST_WINDOW = 7
@@ -126,6 +127,11 @@ def fetch_history():
 def fetch_forecasts():
     return [i for i in cf.find({})]
 
+def fetch_aqi_history():
+    return [i for i in ca.find({})]
+
+def fetch_aqi_forecasts():
+    return [i for i in caf.find({})]
 
 def weathers2df(weathers):
     """
@@ -180,6 +186,23 @@ def create_df():
     df = df.reset_index()
 
     return df
+
+
+def create_aqi_df():
+    f = fetch_aqi_forecasts()
+    afdf = weathers2df(f)
+    afdf["origin"] = "forecast"
+
+    h = fetch_aqi_history()
+    ahdf = weathers2df(h)
+    ahdf["origin"] = "history"
+
+    adf = pd.concat((ahdf, afdf))
+
+    dt_cols = ["datetime", "fetched_at"]
+    dt_cols_str = [d + "_str" for d in dt_cols]
+    adf[dt_cols_str] = adf[dt_cols].apply(datetime2string)
+    return adf
 
 
 def get_error_graphs(df_graph, x_column, main_line_column, lower_column, upper_column, rgb_str, name):
@@ -417,6 +440,8 @@ def generate_page(n_intervals):
     logging.info(f"Regenerating info div: times regenerated = {n_intervals}")
     df = create_df()
 
+    adf = create_aqi_df()
+
     fig_temp = create_time_figure(
         df,
         "temperature.temp",
@@ -515,7 +540,7 @@ def generate_page(n_intervals):
         show_forecast=False,
         history_rgb="rgb(255,255,51)",
         as_type="graphs",
-        line_only_graph_type="markers",
+        line_only_graph_type="lines",
         custom_main_trace_label="Sunrise"
     )
 
@@ -527,7 +552,7 @@ def generate_page(n_intervals):
         show_forecast=False,
         history_rgb="rgb(255,128,0)",
         as_type="graphs",
-        line_only_graph_type="markers",
+        line_only_graph_type="lines",
         custom_main_trace_label="Sunset"
     )
 
@@ -547,6 +572,125 @@ def generate_page(n_intervals):
         forecast_rgb=FORECAST_RGB
     )
 
+    fig_aqi = create_time_figure(
+        adf,
+        "aqi",
+        "Adjusted AQI (1 [good] - 5 [hazardous])",
+        show_history=True,
+        show_forecast=True,
+        history_rgb="rgb(7,130,255)",
+        forecast_rgb=FORECAST_RGB
+    )
+
+
+    trace_pollutants_forecasts = False
+    trace_pollutants_markers = "lines"
+
+    graphs_co = create_time_figure(
+        adf,
+        "co",
+        None,
+        show_history=True,
+        show_forecast=trace_pollutants_forecasts,
+        history_rgb="rgb(122,120,227)",
+        as_type="graphs",
+        line_only_graph_type=trace_pollutants_markers,
+        custom_main_trace_label="CO"
+    )
+
+    graphs_no = create_time_figure(
+        adf,
+        "no",
+        None,
+        show_history=True,
+        show_forecast=trace_pollutants_forecasts,
+        history_rgb="rgb(112,224,208)",
+        as_type="graphs",
+        line_only_graph_type=trace_pollutants_markers,
+        custom_main_trace_label="NO"
+    )
+
+    graphs_no2 = create_time_figure(
+        adf,
+        "no2",
+        None,
+        show_history=True,
+        show_forecast=trace_pollutants_forecasts,
+        history_rgb="rgb(224,112,118)",
+        as_type="graphs",
+        line_only_graph_type=trace_pollutants_markers,
+        custom_main_trace_label="NO2"
+    )
+
+    graphs_o3 = create_time_figure(
+        adf,
+        "o3",
+        None,
+        show_history=True,
+        show_forecast=trace_pollutants_forecasts,
+        history_rgb="rgb(76,153,60)",
+        as_type="graphs",
+        line_only_graph_type=trace_pollutants_markers,
+        custom_main_trace_label="O3"
+    )
+
+    graphs_nh3 = create_time_figure(
+        adf,
+        "nh3",
+        None,
+        show_history=True,
+        show_forecast=trace_pollutants_forecasts,
+        history_rgb="rgb(136,163,60)",
+        as_type="graphs",
+        line_only_graph_type=trace_pollutants_markers,
+        custom_main_trace_label="NH3"
+    )
+
+    graphs_so2 = create_time_figure(
+        adf,
+        "so2",
+        None,
+        show_history=True,
+        show_forecast=trace_pollutants_forecasts,
+        history_rgb="rgb(145,145,145)",
+        as_type="graphs",
+        line_only_graph_type=trace_pollutants_markers,
+        custom_main_trace_label="SO2"
+    )
+
+
+    fig_pollutants = go.Figure(
+        graphs_co + graphs_no + graphs_no2 + graphs_o3 + graphs_nh3 + graphs_so2
+    )
+    fig_pollutants.update_layout(
+        template="plotly_dark",
+        title="Trace Air Pollutants (ug/m^3)"
+    )
+    fig_pollutants.update_yaxes(type="log", title="Pollutant concentration")
+
+    fig_pm25 = create_time_figure(
+        adf,
+        "pm2_5",
+        "Fine Particulate Matter PM2.5 (ug/m^3)",
+        show_history=True,
+        show_forecast=True,
+        history_rgb="rgb(255,0,0)",
+        forecast_rgb=FORECAST_RGB
+    )
+
+    fig_pm10 = create_time_figure(
+        adf,
+        "pm10",
+        "Coarse Particulate Matter PM10 (ug/m^3)",
+        show_history=True,
+        show_forecast=True,
+        history_rgb="rgb(43,0,237)",
+        forecast_rgb=FORECAST_RGB
+    )
+
+
+
+
     graphs = [
         dcc.Graph(id='graph_temperature',figure=fig_temp),
         dcc.Graph(id="graph_feels_like", figure=fig_feels_like),
@@ -557,8 +701,12 @@ def generate_page(n_intervals):
         dcc.Graph(id="graph_pressure", figure=fig_pressure),
         dcc.Graph(id="graph_humidty", figure=fig_humidity),
         dcc.Graph(id="graph_visibility", figure=fig_visibility),
-        dcc.Graph(id="graph_cloud_coverage", figure=fig_cloud_cover),
-        dcc.Graph(id="graph_suntimes", figure=fig_suntimes)
+        # dcc.Graph(id="graph_cloud_coverage", figure=fig_cloud_cover),
+        dcc.Graph(id="graph_suntimes", figure=fig_suntimes),
+        dcc.Graph(id="graph_aqi", figure=fig_aqi),
+        dcc.Graph(id="graph_pollutants", figure=fig_pollutants),
+        dcc.Graph(id="graph_pm25", figure=fig_pm25),
+        dcc.Graph(id="graph_pm10", figure=fig_pm10)
     ]
     divs = []
 
@@ -674,6 +822,7 @@ def generate_page(n_intervals):
             html.Tr([
                 html.Td("Precipitation prob./accum (3h)", style=white_text),
                 html.Td(f'{most_recent_weather["precipitation_probability"]}/{most_recent_weather["rain.3h"]}mm', style=white_text)
+                # html.Td("K", style=white_text)
             ]),
             html.Tr([
                 html.Td("Wind speed/direction", style=white_text),
@@ -715,5 +864,9 @@ if __name__ == '__main__':
     pd.set_option('display.max_rows', 500)
     pd.set_option('display.max_columns', 500)
     pd.set_option('display.width', 1000)
-    # app.run_server(debug=True, port=SERVER_PORT)
-    app.run_server(debug=False, host="0.0.0.0", port=SERVER_PORT)
+    app.run_server(debug=True, port=SERVER_PORT)
+    # app.run_server(debug=False, host="0.0.0.0", port=SERVER_PORT)
+
+
+    # df = create_aqi_df()
+    # print(df)
