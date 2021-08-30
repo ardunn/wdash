@@ -1,11 +1,11 @@
 LAT: 39.35559
 LON: -120.22110
 
-DB_HOST: 192.168.50.69
+DB_HOST: localhost
 DB_PORT: 27017
 DB_NAME: "wdash"
 INTERVAL: 1800
 PORT: 57042
 # Your api key goes here
-API_KEY: ""
+API_KEY: "66c33f6d5f8a24dc88daea33ac1dd9c6"
 WINDY_EMBED: "https://embed.windy.com/embed2.html?lat=39.339&lon=-120.173&detailLat=39.339&detailLon=-120.173&width=650&height=450&zoom=5&level=surface&overlay=wind&product=ecmwf&menu=&message=&marker=&calendar=now&pressure=&type=map&location=coordinates&detail=&metricWind=mph&metricTemp=%C2%B0F&radarRange=-1"
