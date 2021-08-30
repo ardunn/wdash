@@ -869,8 +869,8 @@ if __name__ == '__main__':
     pd.set_option('display.max_rows', 500)
     pd.set_option('display.max_columns', 500)
     pd.set_option('display.width', 1000)
-    app.run_server(debug=True, port=SERVER_PORT)
-    # app.run_server(debug=False, host="0.0.0.0", port=SERVER_PORT)
+    # app.run_server(debug=True, port=SERVER_PORT)
+    app.run_server(debug=False, host="0.0.0.0", port=SERVER_PORT)
 
 
     # df = create_aqi_df()
