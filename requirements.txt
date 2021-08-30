@@ -1,5 +1,6 @@
-pyyaml
-pyowm
-dash
-pymongo
-pandas
+PyYAML==5.4.1
+pyowm==3.2.0
+dash==1.20.0
+pymongo==3.11.4
+pandas==1.2.5
+
