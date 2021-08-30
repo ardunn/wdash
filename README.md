@@ -36,9 +36,8 @@ pip install -r requirements.txt
 
 All the variables needed to configure `wdash` are in `config.yml`. 
 
-#### `CITY_ID`
-The city ID (an integer) for your city as per [OpenWeatherMaps search API](https://openweathermap.org/find). Enter your city and country name and the resulting url (e.g., https://openweathermap.org/city/5403676) contains the integer city ID (in this example, 5403676).
-
+#### `LAT` and `LON`
+Any latitude and longitude in the world.
 
 #### `DB_HOST`
 The host of your mongodb instance, e.g., `localhost`
