@@ -684,6 +684,7 @@ def generate_page(n_intervals):
             history_rgb="rgb(255,0,0)",
             forecast_rgb=FORECAST_RGB
         )
+        fig_pm25.update_yaxes(type="log")
 
         fig_pm10 = create_time_figure(
             adf,
@@ -694,6 +695,7 @@ def generate_page(n_intervals):
             history_rgb="rgb(43,0,237)",
             forecast_rgb=FORECAST_RGB
         )
+        fig_pm10.update_yaxes(type="log")
 
         graphs = [
             dcc.Graph(id='graph_temperature',figure=fig_temp),
@@ -860,7 +862,8 @@ app.layout = html.Div(
             Updated with data from the OpenWeatherMaps API, pyOWM, and Windy.
         ''', style={"color": "white"}),
         html.Br(),
-        dcc.Loading(children=html.Div(id="all_info"), type="circle")
+        html.Br(),
+        dcc.Loading(children=html.Div(id="all_info"), type="dot")
 
     ],
     style={"backgroundColor": "rgb(17,17,17)"}
