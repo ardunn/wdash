@@ -308,7 +308,7 @@ def create_time_figure(
                 main_trace_label
             )
         else:
-            logging.info(f"Creatimg '{column_main}' graph with no error bars")
+            logging.info(f"Creating '{column_main}' graph with no error bars")
             history_graphs = get_line_graphs(
                 df_history,
                 "datetime",
@@ -354,7 +354,7 @@ def create_time_figure(
             else:
                 dt_min = df_history["datetime"].min()
 
-            dt_max = df_forecast["datetime"].max()
+            dt_max = df_forecast["datetime"].max() if show_forecast else df_history["datetime"].max()
             fig.update_xaxes(range=[dt_min, dt_max])
         return fig
     elif as_type == "graphs":
@@ -653,26 +653,27 @@ def generate_page(n_intervals):
             custom_main_trace_label="NH3"
         )
 
-        graphs_so2 = create_time_figure(
+        fig_pollutants = create_time_figure(
             adf,
             "so2",
             None,
             show_history=True,
             show_forecast=trace_pollutants_forecasts,
             history_rgb="rgb(145,145,145)",
-            as_type="graphs",
+            as_type="figure",
             line_only_graph_type=trace_pollutants_markers,
             custom_main_trace_label="SO2"
         )
 
-        fig_pollutants = go.Figure(
-            graphs_co + graphs_no + graphs_no2 + graphs_o3 + graphs_nh3 + graphs_so2
-        )
+        for g in [graphs_co, graphs_no, graphs_no2, graphs_o3, graphs_nh3]:
+            fig_pollutants.add_trace(g[0])
+
         fig_pollutants.update_layout(
             template="plotly_dark",
             title="Trace Air Pollutants (ug/m^3)"
         )
         fig_pollutants.update_yaxes(type="log", title="Pollutant concentration")
+        
 
         fig_pm25 = create_time_figure(
             adf,
