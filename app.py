@@ -766,7 +766,7 @@ def generate_page(n_intervals):
         df_hm["hour"] = df_hm["datetime"].apply(lambda x: x.hour)
 
         square_index = list(reversed(df_hm["dow"].unique().tolist()))
-        hours_index = [2, 5, 8, 11, 14, 17, 20, 23]
+        hours_index = [0, 3, 6, 9, 12, 15, 18, 21]
 
         df_square_statuses = pd.DataFrame("no status", columns=hours_index, index=square_index)
         df_square_ints = pd.DataFrame(np.nan, columns=hours_index, index=square_index)
@@ -791,6 +791,8 @@ def generate_page(n_intervals):
         #
         # figh = go.Figure(data=heatmap)
 
+        print("df_square_ints")
+        print(df_square_ints)
 
 
         figh = ff.create_annotated_heatmap(
@@ -873,7 +875,7 @@ if __name__ == '__main__':
     pd.set_option('display.max_rows', 500)
     pd.set_option('display.max_columns', 500)
     pd.set_option('display.width', 1000)
-    # app.run_server(debug=True, port=SERVER_PORT)
+    #app.run_server(debug=True, port=SERVER_PORT)
     app.run_server(debug=False, host="0.0.0.0", port=SERVER_PORT)
 
 
