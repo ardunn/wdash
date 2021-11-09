@@ -437,12 +437,12 @@ def wind_direction_graph(df_wind, history_rgb, forecast_rgb):
     )
     return fig
 
+
 @app.callback(
     Output(component_id='all_info', component_property="children"),
     Input(component_id="interval", component_property="n_intervals")
 )
 def generate_page(n_intervals):
-
     try:
         logging.info(f"Regenerating info div: times regenerated = {n_intervals}")
         df = create_df()
@@ -460,6 +460,17 @@ def generate_page(n_intervals):
             history_rgb="rgb(255,0,0)",
             forecast_rgb=FORECAST_RGB
         )
+
+        fig_temp_historical = create_time_figure(
+            df,
+            "temperature.temp",
+            "Temperature (F) - All time",
+            show_forecast=False,
+            show_history=True,
+            history_rgb="rgb(255,0,0)",
+            limit_date_range=False,
+        )
+
 
         fig_precipitation_prob = create_time_figure(
             df,
@@ -480,6 +491,16 @@ def generate_page(n_intervals):
             history_rgb="rgb(0,255,0)",
             forecast_rgb=FORECAST_RGB
         )
+        fig_windspeed_historical = create_time_figure(
+            df,
+            "wind.speed",
+            "Wind speed (mph) - All time",
+            show_forecast=False,
+            show_history=True,
+            history_rgb="rgb(0,255,0)",
+            limit_date_range=False
+        )
+
 
         fig_pressure = create_time_figure(
             df,
@@ -588,7 +609,18 @@ def generate_page(n_intervals):
             history_rgb="rgb(7,130,255)",
             forecast_rgb=FORECAST_RGB
         )
-        fig_aqi.update_yaxes(type="category", categoryorder="array", categoryarray=["great", "fair", "moderate", "poor", "hazardous"])
+        fig_aqi_historical = create_time_figure(
+            adf,
+            "aqi",
+            "Adjusted AQI - All time",
+            show_history=True,
+            show_forecast=False,
+            history_rgb="rgb(7,130,255)",
+            limit_date_range=False
+        )
+        
+        for fig in (fig_aqi, fig_aqi_historical):
+            fig.update_yaxes(type="category", categoryorder="array", categoryarray=["great", "fair", "moderate", "poor", "hazardous"])
 
         trace_pollutants_forecasts = False
         trace_pollutants_markers = "lines"
@@ -726,6 +758,14 @@ def generate_page(n_intervals):
         if len(graphs) % 2 != 0:
             divs.append(html.Div(graphs[-1], className="row"))
 
+        
+        graphs_historical = [
+            dcc.Graph(id="graph_temp_historical", figure=fig_temp_historical),
+            dcc.Graph(id="graph_windspeed_historical", figure=fig_windspeed_historical),
+            dcc.Graph(id="graph_aqi_historical", figure=fig_aqi_historical),
+        ]
+        divs_historical = [html.Div(g) for g in graphs_historical]
+
 
         # top rows
         common_style = {"width": "95%", "height": "700px", "margin": "auto", "border": "30px"}
@@ -848,7 +888,7 @@ def generate_page(n_intervals):
         col1 = html.Div([right_now, g], className="six columns")
         col2 = html.Div(widget, className="six columns")
         toprow = html.Div([col1, col2], className="row")
-        return html.Div([toprow] + divs)
+        return html.Div([toprow] + [html.H3("Recent Weather Metrics", style=white_text)] + divs + [html.H3("Full History", style=white_text)] + divs_historical)
     except BaseException:
         exc_type, exc_value, exc_traceback = sys.exc_info()
         tbf = traceback.format_exception(exc_type, exc_value, exc_traceback)
